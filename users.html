@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - BoxIM ENLTbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BoxIM ENLTbot</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard">仪表板</a>
+                <a href="/users" class="active">用户管理</a>
+                <a href="/logs">系统日志</a>
+                <a href="/settings">设置</a>
+                <a href="/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>👥 用户管理</h1>
+        
+        <div class="card">
+            <h3>添加新用户</h3>
+            <form id="add-user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" required placeholder="请输入用户名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" required placeholder="请输入密码（至少6位）">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">角色</label>
+                        <select id="role">
+                            <option value="user">普通用户</option>
+                            <option value="admin">管理员</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">添加用户</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3>用户列表</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>角色</th>
+                            <th>创建时间</th>
+                            <th>最后登录</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in web_users %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>
+                                <span class="badge {% if u.role == 'admin' %}badge-admin{% else %}badge-user{% endif %}">
+                                    {% if u.role == 'admin' %}管理员{% else %}普通用户{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ u.created_at }}</td>
+                            <td>{% if u.last_login %}{{ u.last_login }}{% else %}从未登录{% endif %}</td>
+                            <td>
+                                <span class="badge {% if u.is_active == 1 %}badge-active{% else %}badge-inactive{% endif %}">
+                                    {% if u.is_active == 1 %}激活{% else %}禁用{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    {% if u.id != user.id %}
+                                        {% if u.is_active == 1 %}
+                                        <button data-action="toggle" data-user-id="{{ u.id }}" data-new-status="0"
+                                                class="btn btn-small btn-warning">
+                                            禁用
+                                        </button>
+                                        {% else %}
+                                        <button data-action="toggle" data-user-id="{{ u.id }}" data-new-status="1"
+                                                class="btn btn-small btn-success">
+                                            激活
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if u.role == 'user' %}
+                                        <button data-action="change-role" data-user-id="{{ u.id }}" data-new-role="admin"
+                                                class="btn btn-small btn-info">
+                                            设为管理员
+                                        </button>
+                                        {% else %}
+                                        <button data-action="change-role" data-user-id="{{ u.id }}" data-new-role="user"
+                                                class="btn btn-small btn-secondary">
+                                            设为用户
+                                        </button>
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">当前用户</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>💡 使用说明</h3>
+            <ul>
+                <li><strong>管理员</strong>可以管理所有用户，包括添加、删除、修改权限</li>
+                <li><strong>普通用户</strong>只能查看仪表板和修改自己的密码</li>
+                <li>不能修改当前登录用户的状态</li>
+                <li>请谨慎分配管理员权限</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BoxIM ENLTbot &copy; 2025 Entropy Light. All rights reserved.</p>
+            <p>当前用户: {{ user.username }} ({{ user.role }})</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        document.getElementById('add-user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            if (password.length < 6) {
+                alert('密码长度至少6位');
+                return;
+            }
+            
+            const response = await fetch('/api/add_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, password, role})
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) location.reload();
+        });
+        
+        async function toggleUser(userId, newStatus) {
+            const action = newStatus == 1 ? '激活' : '禁用';
+            if (!confirm(`确定要${action}这个用户吗？`)) return;
+            
+            const response = await fetch('/api/update_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: userId, is_active: newStatus})
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) location.reload();
+        }
+        
+        async function changeRole(userId, newRole) {
+            const roleName = newRole === 'admin' ? '管理员' : '普通用户';
+            if (!confirm(`确定要将用户角色改为${roleName}吗？`)) return;
+            
+            const response = await fetch('/api/update_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: userId, role: newRole})
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) location.reload();
+        }
+    </script>
+</body>
+</html>

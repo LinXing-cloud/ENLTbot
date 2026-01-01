@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - BoxIM ENLTbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BoxIM ENLTbot</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard" class="active">仪表板</a>
+                {% if user.role == 'admin' %}
+                <a href="/users">用户管理</a>
+                <a href="/logs">系统日志</a>
+                {% endif %}
+                <a href="/settings">设置</a>
+                <a href="/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📊 机器人状态</h1>
+        
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>运行状态</h3>
+                <div class="status-indicator {{ 'status-online' if bot_status.is_connected else 'status-offline' }}">
+                    {{ '🟢 在线' if bot_status.is_connected else '🔴 离线' }}
+                </div>
+                <p>登录状态: {{ '🟢 已登录' if bot_status.is_logged_in else '🔴 未登录' }}</p>
+                <p>用户ID: {{ bot_status.user_id or '未知' }}</p>
+            </div>
+
+            <div class="status-card">
+                <h3>运行信息</h3>
+                <p>运行时间: {{ bot_status.uptime }}</p>
+                <p>启动时间: {{ bot_status.start_time }}</p>
+                <p>最后消息: {{ bot_status.last_message_time }}</p>
+                <p>今日消息: {{ bot_status.message_count_today }}</p>
+            </div>
+
+            <div class="status-card">
+                <h3>连接状态</h3>
+                <p>重连次数: {{ bot_status.ws_reconnect_count }}</p>
+                <p>Token过期: {{ bot_status.access_token_expires }}</p>
+                <p>刷新Token过期: {{ bot_status.refresh_token_expires }}</p>
+            </div>
+
+            <div class="status-card">
+                <h3>统计信息</h3>
+                <p>总用户数: {{ stats.total_users }}</p>
+                <p>活跃用户: {{ stats.active_users }}</p>
+                <p>总消息数: {{ stats.total_messages }}</p>
+                <p>总群聊数: {{ stats.total_groups }}</p>
+            </div>
+        </div>
+
+        <div class="actions">
+            {% if user.role == 'admin' %}
+            <button onclick="restartBot()" class="btn btn-warning">重启机器人</button>
+            <button onclick="stopBot()" class="btn btn-danger">停止机器人</button>
+            {% endif %}
+            <button onclick="refreshStatus()" class="btn btn-primary">刷新状态</button>
+        </div>
+
+        <div class="info">
+            <h3>📋 系统信息</h3>
+            <p>Web界面版本: v2.4.0</p>
+            <p>机器人账号: {{ bot_status.username }}</p>
+            <p>当前时间: <span id="current-time"></span></p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BoxIM ENLTbot &copy; 2025 Entropy Light. All rights reserved.</p>
+            <p>当前用户: {{ user.username }} ({{ user.role }}) | 最后更新: <span id="last-update"></span></p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString('zh-CN');
+            document.getElementById('last-update').textContent = now.toLocaleString('zh-CN');
+        }
+        
+        function refreshStatus() {
+            location.reload();
+        }
+        
+        async function restartBot() {
+            if (!confirm('确定要重启机器人吗？')) return;
+            
+            const response = await fetch('/api/restart_bot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) refreshStatus();
+        }
+        
+        async function stopBot() {
+            if (!confirm('确定要停止机器人吗？')) return;
+            
+            const response = await fetch('/api/stop_bot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) refreshStatus();
+        }
+        
+        // 初始化
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>

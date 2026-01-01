@@ -1,0 +1,8 @@
+aiohttp>=3.8.0
+websockets>=12.0
+psutil>=5.9.0
+aiohttp-jinja2>=1.6.0
+jinja2>=3.0.0
+bcrypt>=4.0.0
+certifi>=2024.2.2
+python-dotenv>=1.0.0  # 新增，用于读取环境变量

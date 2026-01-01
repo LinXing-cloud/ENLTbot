@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - BoxIM ENLTbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BoxIM ENLTbot</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard">仪表板</a>
+                <a href="/users">用户管理</a>
+                <a href="/logs" class="active">系统日志</a>
+                <a href="/settings">设置</a>
+                <a href="/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>📋 系统日志</h1>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>操作日志</h3>
+                <button onclick="refreshLogs()" class="btn btn-primary">刷新</button>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>用户</th>
+                            <th>操作</th>
+                            <th>详情</th>
+                            <th>IP地址</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.created_at }}</td>
+                            <td>{{ log.username or '系统' }}</td>
+                            <td>
+                                <span class="badge badge-log">
+                                    {{ log.action }}
+                                </span>
+                            </td>
+                            <td>{{ log.details or '-' }}</td>
+                            <td>{{ log.ip_address or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>💡 日志说明</h3>
+            <ul>
+                <li>日志记录所有用户操作和系统事件</li>
+                <li>保留最近100条日志记录</li>
+                <li>管理员可以查看所有用户的操作记录</li>
+                <li>IP地址用于安全审计</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BoxIM ENLTbot &copy; 2025 Entropy Light. All rights reserved.</p>
+            <p>当前用户: {{ user.username }} ({{ user.role }}) | 日志数量: {{ logs|length }}</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        function refreshLogs() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

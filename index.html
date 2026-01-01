@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - BoxIM ENLTbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BoxIM ENLTbot</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard">仪表板</a>
+                {% if user.role == 'admin' %}
+                <a href="/users">用户管理</a>
+                <a href="/logs">系统日志</a>
+                {% endif %}
+                <a href="/settings">设置</a>
+                <a href="/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>欢迎使用 BoxIM ENLTbot</h1>
+            <p>多功能机器人管理系统</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>📊 机器人状态</h3>
+                <p>实时监控机器人运行状态</p>
+                <a href="/dashboard" class="btn">查看状态</a>
+            </div>
+
+            {% if user.role == 'admin' %}
+            <div class="card">
+                <h3>👥 用户管理</h3>
+                <p>管理系统用户和权限</p>
+                <a href="/users" class="btn">管理用户</a>
+            </div>
+
+            <div class="card">
+                <h3>📋 系统日志</h3>
+                <p>查看系统操作日志</p>
+                <a href="/logs" class="btn">查看日志</a>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <h3>⚙️ 系统设置</h3>
+                <p>修改密码和系统配置</p>
+                <a href="/settings" class="btn">系统设置</a>
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>📝 使用说明</h3>
+            <ul>
+                <li>使用 <strong>仪表板</strong> 查看机器人实时状态</li>
+                <li>使用 <strong>设置</strong> 修改您的登录密码</li>
+                {% if user.role == 'admin' %}
+                <li>使用 <strong>用户管理</strong> 添加或修改系统用户</li>
+                <li>使用 <strong>系统日志</strong> 查看所有操作记录</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BoxIM ENLTbot &copy; 2025 Entropy Light. All rights reserved.</p>
+            <p>当前用户: {{ user.username }} ({{ user.role }})</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

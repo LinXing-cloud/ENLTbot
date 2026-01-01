@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - BoxIM ENLTbot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">BoxIM ENLTbot</a>
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard">仪表板</a>
+                {% if user.role == 'admin' %}
+                <a href="/users">用户管理</a>
+                <a href="/logs">系统日志</a>
+                {% endif %}
+                <a href="/settings" class="active">设置</a>
+                <a href="/logout">退出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>⚙️ 系统设置</h1>
+        
+        <div class="card">
+            <h3>修改密码</h3>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="current-password">当前密码</label>
+                    <input type="password" id="current-password" required placeholder="请输入当前密码">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-password">新密码</label>
+                    <input type="password" id="new-password" required placeholder="请输入新密码（至少6位）">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">确认新密码</label>
+                    <input type="password" id="confirm-password" required placeholder="请再次输入新密码">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">修改密码</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3>系统信息</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Web界面版本:</strong> v2.4.0
+                </div>
+                <div class="info-item">
+                    <strong>当前用户:</strong> {{ user.username }}
+                </div>
+                <div class="info-item">
+                    <strong>用户角色:</strong> {{ user.role }}
+                </div>
+                <div class="info-item">
+                    <strong>创建时间:</strong> {{ user.created_at }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>🔒 安全提示</h3>
+            <ul>
+                <li>请定期修改密码，建议每3个月修改一次</li>
+                <li>密码应包含字母、数字和特殊字符</li>
+                <li>不要使用与其他网站相同的密码</li>
+                <li>退出时请点击"退出"按钮，不要直接关闭浏览器</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>BoxIM ENLTbot &copy; 2025 Entropy Light. All rights reserved.</p>
+            <p>当前用户: {{ user.username }} ({{ user.role }})</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <script>
+        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('新密码不匹配');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('密码长度至少6位');
+                return;
+            }
+            
+            const response = await fetch('/api/change_password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+            
+            const result = await response.json();
+            alert(result.message || result.error);
+            if (result.success) {
+                // 清空表单
+                document.getElementById('change-password-form').reset();
+                // 建议重新登录
+                if (confirm('密码修改成功，建议重新登录。是否现在重新登录？')) {
+                    window.location.href = '/logout';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
